@@ -1,0 +1,43 @@
+# Target build directory
+target/
+*.class
+
+# Package files
+*.jar
+*.war
+*.nar
+*.ear
+*.zip
+*.tar.gz
+*.rar
+
+# Maven log
+mvn-build.log
+*.log
+
+# IntelliJ IDEA
+.idea/
+*.iml
+*.iws
+*.ipr
+out/
+
+# Eclipse
+.project
+.classpath
+.settings/
+bin/
+
+# Visual Studio Code
+.vscode/
+
+# OS specific files
+.DS_Store
+Thumbs.db
+ehthumbs.db
+
+# Temporary & test output
+tmp/
+temp/
+test-output/
+.system_generated/
