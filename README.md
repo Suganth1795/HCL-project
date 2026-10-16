@@ -92,6 +92,22 @@ Provides a menu-driven CLI interface with dedicated handlers for each Functional
   - Try-with-resources (`try (Scanner scanner = new Scanner(System.in))`) guarantees automatic resource cleanup.
   - Interactive loop catches all domain errors, outputs diagnostic guidance, and resumes execution seamlessly without crashing.
 
+#### G. Collections Framework (List, Set, Queue) & FR1–FR3 Implementation
+- **`List` Collection (`A1-COL-01`)**:
+  - `List<Property>` stores the active property catalog (`ListingServiceImpl.catalog`).
+  - Search results returned dynamically as filtered `List<Property>` matching city and price range predicates.
+  - Owner listings retrieved as `List<Property>` filtered by `ownerId`.
+- **`Set` Collection (`A1-COL-02`)**:
+  - `Set<Property>` manages seeker shortlists and favourites (`ListingServiceImpl.favourites`), naturally enforcing deduplication.
+  - `Set<String>` retrieves sorted distinct cities (`TreeSet<>(String.CASE_INSENSITIVE_ORDER)`) with active approved listings.
+- **`Queue` Collection (`A1-COL-04`)**:
+  - `Queue<Property>` (`LinkedBlockingQueue`) in `ApprovalQueueService` powers the Administrator moderation workflow.
+  - Submissions are queued in strict First-In-First-Out (FIFO) arrival order (`offer()`, `poll()`, `peek()`), ensuring older submissions are reviewed first.
+- **Interactive FR1–FR3 Workflows in Console Application**:
+  - **FR1 (Owner Management)**: Validates and creates listings, saves to catalog (`List`), and enqueues into review queue (`Queue`).
+  - **FR2 (Admin Moderation)**: Displays FIFO queue depth, peeks oldest submission, and executes approval decision transitioning status to `APPROVED`.
+  - **FR3 (Seeker Dynamic Search & Shortlists)**: Displays available cities (`Set`), executes multi-criteria search (`List`), and bookmarks preferred properties into deduplicated favourites (`Set`).
+
 ---
 
 ### 5. Maven Build & CLI Execution Instructions
@@ -119,6 +135,7 @@ mvn exec:java
 | **Task 4** | Create model classes for the three main entities (`Property`, `User`, `Lease`) | `src/.../Property.java`<br>`src/.../User.java`<br>`src/.../Lease.java`<br>`src/test/.../ModelTest.java`<br>`README.md` | Executed `mvn clean test` (Java 21): 8/8 tests passed with 0 failures; validated encapsulation, Comparable sorting by rent, Period duration calculation, and identity contracts. | [`475099a`](https://github.com/Suganth1795/HCL-project/commit/475099a) | **Pushed** | Task 5: Add BaseEntity, the role hierarchy, and a Strategy interface with two implementations |
 | **Task 5** | Add BaseEntity, the role hierarchy, and a Strategy interface with two implementations; use feature branch and pull request workflow | `src/.../BaseEntity.java`<br>`src/.../Role.java`<br>`src/.../RoleHierarchy.java`<br>`src/.../Property.java`<br>`src/.../User.java`<br>`src/.../Lease.java`<br>`src/.../SearchCriteria.java`<br>`src/.../SearchStrategy.java`<br>`src/.../CitySearchStrategy.java`<br>`src/.../PriceRangeSearchStrategy.java`<br>`src/test/.../BaseEntityAndRoleTest.java`<br>`src/test/.../SearchStrategyTest.java`<br>`README.md` | Executed `mvn clean test` (Java 21): 16/16 tests passed with 0 failures; validated BaseEntity audit timestamps, role hierarchy resolution & access rules, and city/price-range search strategies. | [`fe360ff`](https://github.com/Suganth1795/HCL-project/commit/fe360ff) | **Pushed** | Task 6: Add custom exception package, enforce two business rules, and recover from errors in menu |
 | **Task 6** | Add custom exception package, enforce two business rules, and recover from errors in the menu | `src/.../ListingValidationException.java`<br>`src/.../PropertyNotFoundException.java`<br>`src/.../UnauthorizedAccessException.java`<br>`src/.../InvalidStateTransitionException.java`<br>`src/.../BusinessRuleEnforcer.java`<br>`src/.../ConsoleMenuApp.java`<br>`src/.../Constants.java`<br>`src/test/.../BusinessRuleExceptionTest.java`<br>`src/test/.../ConsoleMenuAppTest.java`<br>`README.md` | Executed `mvn clean test` (Java 21): 26/26 tests passed with 0 failures; validated custom checked/unchecked exceptions, financial/ownership business rules, multi-catch, and in-menu error recovery. | [`4f7ff51`](https://github.com/Suganth1795/HCL-project/commit/4f7ff51) | **Pushed** | Task 7: Use List, Set, and Queue and implement FR1–FR3 in console application |
+| **Task 7** | Use List, Set, and Queue and implement FR1–FR3 in the console application | `src/.../ApprovalQueueService.java`<br>`src/.../ListingService.java`<br>`src/.../ListingServiceImpl.java`<br>`src/.../ConsoleMenuApp.java`<br>`src/test/.../ListingServiceCollectionsTest.java`<br>`README.md` | Executed `mvn clean test` (Java 21): 34/34 tests passed with 0 failures; validated List catalog & search results, Set deduplicated favourites & cities, Queue FIFO admin moderation, and interactive FR1-FR3 workflows. | *Pending Approval* | *Awaiting Approval* | Task 8: Use Maps, a sorted report, and two Comparators; implement FR4–FR6 |
 
 ---
 
