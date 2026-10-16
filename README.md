@@ -60,6 +60,11 @@ Provides a menu-driven CLI interface with dedicated handlers for each Functional
 - `[9] DEMO`: View 1-Week Sample Transaction Data
 - `[0]`: Exit System
 
+#### D. Core Domain Models (`com.hcl.realestate.core.model`)
+- **`Property`**: Represents real estate listings. Implements `Comparable<Property>` for natural ordering by `monthlyRent` ascending, full encapsulation, parameterized and default constructors, and equality by ID.
+- **`User`**: Models platform participants across roles (`OWNER`, `SEEKER`, `TENANT`, `ADMIN`) with full profile encapsulation and `getFullName()` helper.
+- **`Lease`**: Codifies binding tenancy contracts between Owner and Tenant with start and end dates (`java.time.LocalDate`), duration calculations via `java.time.Period`, monthly rent, and deposit tracking.
+
 ---
 
 ### 5. Maven Build & CLI Execution Instructions
@@ -83,7 +88,8 @@ mvn exec:java
 | :---: | :--- | :--- | :--- | :---: | :---: | :--- |
 | **Task 1** | Convert 8 FRs into user stories, estimate story points, and define Definition of Done (DoD) | `docs/USER-STORIES.md`<br>`README.md` | Verified all 8 FRs mapped to US-01..US-08 with Given-When-Then acceptance criteria, 34 story points estimation, DoR/DoD checklists, and Kanban workflow. | [`c365ff3`](https://github.com/Suganth1795/HCL-project/commit/c365ff3) | **Pushed** | Task 2: Repository docs, `.gitignore`, Constants class, and 1-week array sample data |
 | **Task 2** | Set up repository docs and `.gitignore`, create Constants class, add 1-week sample data using arrays | `.gitignore`<br>`src/.../Constants.java`<br>`src/.../SampleArrayData.java`<br>`README.md` | Compiled with `javac` (0 errors); executed `SampleArrayData.main()` verifying 7-day tabular report, total collections (INR 276,000), and visit metrics. | [`39b5ccc`](https://github.com/Suganth1795/HCL-project/commit/39b5ccc) | **Pushed** | Task 3: Maven parent structure and console menu with one option per functional requirement |
-| **Task 3** | Prepare Maven parent structure (`pom.xml`) and console menu with one option per functional requirement | `pom.xml`<br>`src/.../ConsoleMenuApp.java`<br>`src/test/.../ConsoleMenuAppTest.java`<br>`README.md` | Executed `mvn clean test` (Java 21): 3/3 tests passed with 0 failures; verified console menu displays FR1-FR8 options, sample report, and exits cleanly. | *Pending Approval* | *Awaiting Approval* | Task 4: Create model classes for the three main entities |
+| **Task 3** | Prepare Maven parent structure (`pom.xml`) and console menu with one option per functional requirement | `pom.xml`<br>`src/.../ConsoleMenuApp.java`<br>`src/test/.../ConsoleMenuAppTest.java`<br>`README.md` | Executed `mvn clean test` (Java 21): 3/3 tests passed with 0 failures; verified console menu displays FR1-FR8 options, sample report, and exits cleanly. | [`45f12d4`](https://github.com/Suganth1795/HCL-project/commit/45f12d4) | **Pushed** | Task 4: Create model classes for the three main entities |
+| **Task 4** | Create model classes for the three main entities (`Property`, `User`, `Lease`) | `src/.../Property.java`<br>`src/.../User.java`<br>`src/.../Lease.java`<br>`src/test/.../ModelTest.java`<br>`README.md` | Executed `mvn clean test` (Java 21): 8/8 tests passed with 0 failures; validated encapsulation, Comparable sorting by rent, Period duration calculation, and identity contracts. | *Pending Approval* | *Awaiting Approval* | Task 5: Add BaseEntity, the role hierarchy, and a Strategy interface with two implementations |
 
 ---
 
