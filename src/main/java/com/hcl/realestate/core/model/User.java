@@ -2,53 +2,69 @@ package com.hcl.realestate.core.model;
 
 import com.hcl.realestate.core.util.Constants;
 
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.Objects;
+import java.util.Set;
 
 /**
  * Represents a registered User on the Real Estate platform.
- * Supports roles: OWNER, SEEKER, TENANT, ADMIN.
  * Demonstrates:
+ * - Inheritance (extends BaseEntity)
  * - Encapsulation (private fields, controlled getters and setters)
- * - Constructors (default and parameterized)
+ * - Role-Based Access Control and Role Hierarchy integration
  * - Object identity (equals and hashCode based on ID and email)
  */
-public class User {
+public class User extends BaseEntity {
 
-    private Long id;
     private String firstName;
     private String lastName;
     private String email;
     private String phone;
     private String role;
+    private final Set<Role> roles = new HashSet<>();
 
     /**
      * Default constructor.
      */
     public User() {
+        super();
         this.role = Constants.ROLE_SEEKER;
+        this.roles.add(Role.ROLE_SEEKER);
     }
 
     /**
-     * Parameterized constructor.
+     * Parameterized constructor with String role.
      */
     public User(Long id, String firstName, String lastName, String email, String phone, String role) {
-        this.id = id;
+        super(id);
         this.firstName = firstName;
         this.lastName = lastName;
         this.email = email;
         this.phone = phone;
         this.role = (role != null) ? role : Constants.ROLE_SEEKER;
+        this.roles.add(Role.fromString(this.role));
+    }
+
+    /**
+     * Parameterized constructor with Role enum set.
+     */
+    public User(Long id, String firstName, String lastName, String email, String phone, Set<Role> assignedRoles) {
+        super(id);
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.email = email;
+        this.phone = phone;
+        if (assignedRoles != null && !assignedRoles.isEmpty()) {
+            this.roles.addAll(assignedRoles);
+            this.role = assignedRoles.iterator().next().name();
+        } else {
+            this.role = Constants.ROLE_SEEKER;
+            this.roles.add(Role.ROLE_SEEKER);
+        }
     }
 
     // --- Getters and Setters (Encapsulation) ---
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
 
     public String getFirstName() {
         return firstName;
@@ -88,6 +104,35 @@ public class User {
 
     public void setRole(String role) {
         this.role = role;
+        if (role != null) {
+            this.roles.clear();
+            this.roles.add(Role.fromString(role));
+        }
+    }
+
+    public Set<Role> getRoles() {
+        return Collections.unmodifiableSet(roles);
+    }
+
+    public void addRole(Role role) {
+        if (role != null) {
+            this.roles.add(role);
+            this.role = role.name();
+        }
+    }
+
+    public boolean hasRole(Role role) {
+        return this.roles.contains(role);
+    }
+
+    /**
+     * Checks if this user has access to a required role under role hierarchy rules.
+     *
+     * @param requiredRole the required role
+     * @return true if any of the user's roles imply the required role
+     */
+    public boolean hasAccess(Role requiredRole) {
+        return RoleHierarchy.hasAccess(this.roles, requiredRole);
     }
 
     /**
@@ -105,23 +150,26 @@ public class User {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         User user = (User) o;
-        return Objects.equals(id, user.id) ||
-                (email != null && email.equalsIgnoreCase(user.email));
+        if (getId() != null && user.getId() != null) {
+            return Objects.equals(getId(), user.getId());
+        }
+        return email != null && email.equalsIgnoreCase(user.email);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, email != null ? email.toLowerCase() : null);
+        return getId() != null ? Objects.hash(getId()) : Objects.hash(email != null ? email.toLowerCase() : null);
     }
 
     @Override
     public String toString() {
         return "User{" +
-                "id=" + id +
+                "id=" + getId() +
                 ", name='" + getFullName() + '\'' +
                 ", email='" + email + '\'' +
                 ", phone='" + phone + '\'' +
                 ", role='" + role + '\'' +
+                ", roles=" + roles +
                 '}';
     }
 }

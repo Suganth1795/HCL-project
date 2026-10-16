@@ -9,14 +9,14 @@ import java.util.Objects;
 /**
  * Represents a binding Rental Lease contract between an Owner and a Tenant.
  * Demonstrates:
+ * - Inheritance (extends BaseEntity)
  * - Encapsulation (private fields, controlled getters and setters)
  * - Modern Java Date-Time API (java.time.LocalDate, Period)
- * - Constructors (default and parameterized)
+ * - Constructors (default and parameterized using super)
  * - Object identity (equals and hashCode based on ID)
  */
-public class Lease {
+public class Lease extends BaseEntity {
 
-    private Long id;
     private Long propertyId;
     private Long tenantId;
     private Long ownerId;
@@ -30,6 +30,7 @@ public class Lease {
      * Default constructor.
      */
     public Lease() {
+        super();
         this.status = Constants.LEASE_ACTIVE;
     }
 
@@ -39,7 +40,7 @@ public class Lease {
     public Lease(Long id, Long propertyId, Long tenantId, Long ownerId,
                  LocalDate startDate, LocalDate endDate,
                  double monthlyRent, double depositAmount, String status) {
-        this.id = id;
+        super(id);
         this.propertyId = propertyId;
         this.tenantId = tenantId;
         this.ownerId = ownerId;
@@ -51,14 +52,6 @@ public class Lease {
     }
 
     // --- Getters and Setters (Encapsulation) ---
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
 
     public Long getPropertyId() {
         return propertyId;
@@ -149,18 +142,23 @@ public class Lease {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Lease lease = (Lease) o;
-        return Objects.equals(id, lease.id);
+        if (getId() != null && lease.getId() != null) {
+            return Objects.equals(getId(), lease.getId());
+        }
+        return Objects.equals(propertyId, lease.propertyId) &&
+                Objects.equals(tenantId, lease.tenantId) &&
+                Objects.equals(startDate, lease.startDate);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id);
+        return getId() != null ? Objects.hash(getId()) : Objects.hash(propertyId, tenantId, startDate);
     }
 
     @Override
     public String toString() {
         return "Lease{" +
-                "id=" + id +
+                "id=" + getId() +
                 ", propertyId=" + propertyId +
                 ", tenantId=" + tenantId +
                 ", ownerId=" + ownerId +

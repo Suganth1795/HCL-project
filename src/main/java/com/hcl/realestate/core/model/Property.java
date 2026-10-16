@@ -7,14 +7,13 @@ import java.util.Objects;
 /**
  * Represents a Property listing in the Real Estate platform.
  * Demonstrates:
+ * - Inheritance (extends BaseEntity for identity and audit fields)
  * - Encapsulation (private fields, controlled access via getters and setters)
- * - Constructors (default and parameterized)
+ * - Constructors (default and parameterized using super)
  * - Comparable interface (natural sorting by monthly rent)
- * - Object identity (equals and hashCode based on ID)
  */
-public class Property implements Comparable<Property> {
+public class Property extends BaseEntity implements Comparable<Property> {
 
-    private Long id;
     private Long ownerId;
     private String title;
     private String description;
@@ -30,6 +29,7 @@ public class Property implements Comparable<Property> {
      * Default no-arg constructor.
      */
     public Property() {
+        super();
         this.status = Constants.STATUS_DRAFT;
     }
 
@@ -39,7 +39,7 @@ public class Property implements Comparable<Property> {
     public Property(Long id, Long ownerId, String title, String description,
                     String propertyType, String city, String locality,
                     int bhk, double monthlyRent, double depositAmount, String status) {
-        this.id = id;
+        super(id);
         this.ownerId = ownerId;
         this.title = title;
         this.description = description;
@@ -53,14 +53,6 @@ public class Property implements Comparable<Property> {
     }
 
     // --- Getters and Setters (Encapsulation) ---
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
 
     public Long getOwnerId() {
         return ownerId;
@@ -166,18 +158,21 @@ public class Property implements Comparable<Property> {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Property property = (Property) o;
-        return Objects.equals(id, property.id);
+        if (getId() != null && property.getId() != null) {
+            return Objects.equals(getId(), property.getId());
+        }
+        return Objects.equals(title, property.title) && Objects.equals(city, property.city);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id);
+        return getId() != null ? Objects.hash(getId()) : Objects.hash(title, city);
     }
 
     @Override
     public String toString() {
         return "Property{" +
-                "id=" + id +
+                "id=" + getId() +
                 ", title='" + title + '\'' +
                 ", city='" + city + '\'' +
                 ", locality='" + locality + '\'' +

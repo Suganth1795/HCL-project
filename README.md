@@ -65,6 +65,18 @@ Provides a menu-driven CLI interface with dedicated handlers for each Functional
 - **`User`**: Models platform participants across roles (`OWNER`, `SEEKER`, `TENANT`, `ADMIN`) with full profile encapsulation and `getFullName()` helper.
 - **`Lease`**: Codifies binding tenancy contracts between Owner and Tenant with start and end dates (`java.time.LocalDate`), duration calculations via `java.time.Period`, monthly rent, and deposit tracking.
 
+#### E. BaseEntity, Role Hierarchy & Strategy Pattern
+- **`BaseEntity`**: Abstract domain base class providing unified identity (`Long id`) and automated auditing timestamps (`createdAt`, `updatedAt`), demonstrating Abstraction (A1-OOP-09) and Encapsulation (A1-OOP-02). Extended by `Property`, `User`, and `Lease`.
+- **`Role` & `RoleHierarchy`**: Enum and RBAC authority engine defining hierarchical privileges:
+  - `ROLE_ADMIN` (level 4) implies all lower roles (`ROLE_OWNER`, `ROLE_TENANT`, `ROLE_SEEKER`).
+  - `ROLE_OWNER` (level 3) implies `ROLE_SEEKER`.
+  - `ROLE_TENANT` (level 2) implies `ROLE_SEEKER`.
+  - `ROLE_SEEKER` (level 1) base access.
+- **`SearchStrategy`**: Pluggable interface demonstrating the Strategy Pattern (A1-DSG-06) and Open/Closed Principle (A1-DSG-02) with two concrete implementations:
+  1. `CitySearchStrategy`: Case-insensitive property location matching.
+  2. `PriceRangeSearchStrategy`: Dynamic budget filtering between minimum and maximum monthly rent bounds.
+- **`SearchCriteria`**: Immutable Java 21 Record holding multi-attribute search parameters.
+
 ---
 
 ### 5. Maven Build & CLI Execution Instructions
@@ -89,7 +101,8 @@ mvn exec:java
 | **Task 1** | Convert 8 FRs into user stories, estimate story points, and define Definition of Done (DoD) | `docs/USER-STORIES.md`<br>`README.md` | Verified all 8 FRs mapped to US-01..US-08 with Given-When-Then acceptance criteria, 34 story points estimation, DoR/DoD checklists, and Kanban workflow. | [`c365ff3`](https://github.com/Suganth1795/HCL-project/commit/c365ff3) | **Pushed** | Task 2: Repository docs, `.gitignore`, Constants class, and 1-week array sample data |
 | **Task 2** | Set up repository docs and `.gitignore`, create Constants class, add 1-week sample data using arrays | `.gitignore`<br>`src/.../Constants.java`<br>`src/.../SampleArrayData.java`<br>`README.md` | Compiled with `javac` (0 errors); executed `SampleArrayData.main()` verifying 7-day tabular report, total collections (INR 276,000), and visit metrics. | [`39b5ccc`](https://github.com/Suganth1795/HCL-project/commit/39b5ccc) | **Pushed** | Task 3: Maven parent structure and console menu with one option per functional requirement |
 | **Task 3** | Prepare Maven parent structure (`pom.xml`) and console menu with one option per functional requirement | `pom.xml`<br>`src/.../ConsoleMenuApp.java`<br>`src/test/.../ConsoleMenuAppTest.java`<br>`README.md` | Executed `mvn clean test` (Java 21): 3/3 tests passed with 0 failures; verified console menu displays FR1-FR8 options, sample report, and exits cleanly. | [`45f12d4`](https://github.com/Suganth1795/HCL-project/commit/45f12d4) | **Pushed** | Task 4: Create model classes for the three main entities |
-| **Task 4** | Create model classes for the three main entities (`Property`, `User`, `Lease`) | `src/.../Property.java`<br>`src/.../User.java`<br>`src/.../Lease.java`<br>`src/test/.../ModelTest.java`<br>`README.md` | Executed `mvn clean test` (Java 21): 8/8 tests passed with 0 failures; validated encapsulation, Comparable sorting by rent, Period duration calculation, and identity contracts. | *Pending Approval* | *Awaiting Approval* | Task 5: Add BaseEntity, the role hierarchy, and a Strategy interface with two implementations |
+| **Task 4** | Create model classes for the three main entities (`Property`, `User`, `Lease`) | `src/.../Property.java`<br>`src/.../User.java`<br>`src/.../Lease.java`<br>`src/test/.../ModelTest.java`<br>`README.md` | Executed `mvn clean test` (Java 21): 8/8 tests passed with 0 failures; validated encapsulation, Comparable sorting by rent, Period duration calculation, and identity contracts. | [`475099a`](https://github.com/Suganth1795/HCL-project/commit/475099a) | **Pushed** | Task 5: Add BaseEntity, the role hierarchy, and a Strategy interface with two implementations |
+| **Task 5** | Add BaseEntity, the role hierarchy, and a Strategy interface with two implementations; use feature branch and pull request workflow | `src/.../BaseEntity.java`<br>`src/.../Role.java`<br>`src/.../RoleHierarchy.java`<br>`src/.../Property.java`<br>`src/.../User.java`<br>`src/.../Lease.java`<br>`src/.../SearchCriteria.java`<br>`src/.../SearchStrategy.java`<br>`src/.../CitySearchStrategy.java`<br>`src/.../PriceRangeSearchStrategy.java`<br>`src/test/.../BaseEntityAndRoleTest.java`<br>`src/test/.../SearchStrategyTest.java`<br>`README.md` | Executed `mvn clean test` (Java 21): 16/16 tests passed with 0 failures; validated BaseEntity audit timestamps, role hierarchy resolution & access rules, and city/price-range search strategies. | *Pending Approval* | *Awaiting Approval* | Task 6: Add custom exception package, enforce two business rules, and recover from errors in menu |
 
 ---
 
