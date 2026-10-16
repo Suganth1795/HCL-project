@@ -2,7 +2,7 @@
 ## Project: JFS-16 Real Estate Listing & Rental Management
 **Document Version:** 1.0  
 **Phase:** Core Java Foundation / Task 1  
-**Author:** Full Stack Engineering Team  
+**Author:** Suganth C L  
 
 ---
 
