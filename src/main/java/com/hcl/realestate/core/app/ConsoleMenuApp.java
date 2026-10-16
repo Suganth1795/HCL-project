@@ -1,14 +1,26 @@
 package com.hcl.realestate.core.app;
 
+import com.hcl.realestate.core.exception.InvalidStateTransitionException;
+import com.hcl.realestate.core.exception.ListingValidationException;
+import com.hcl.realestate.core.exception.PropertyNotFoundException;
+import com.hcl.realestate.core.exception.UnauthorizedAccessException;
+import com.hcl.realestate.core.model.Property;
+import com.hcl.realestate.core.model.User;
 import com.hcl.realestate.core.util.Constants;
 import com.hcl.realestate.core.util.SampleArrayData;
+import com.hcl.realestate.core.validation.BusinessRuleEnforcer;
 
 import java.util.Scanner;
 
 /**
  * Interactive Console Menu Application for JFS-16 Real Estate Listing & Rental Management.
- * Provides a structured CLI entry point with exactly one dedicated option per
- * Functional Requirement (FR1 through FR8), plus a 1-week sample data report.
+ * Demonstrates:
+ * - One dedicated option per Functional Requirement (FR1 through FR8)
+ * - Custom Checked Exception handling (A1-EX-01: ListingValidationException)
+ * - Custom Unchecked Exception handling (A1-EX-02: PropertyNotFoundException, UnauthorizedAccessException, InvalidStateTransitionException)
+ * - Multi-catch exception handling (A1-EX-03)
+ * - Try-with-resources (A1-EX-04)
+ * - In-menu graceful error recovery ensuring the application loop never crashes
  */
 public class ConsoleMenuApp {
 
@@ -32,18 +44,30 @@ public class ConsoleMenuApp {
 
             String input = scanner.nextLine().trim();
 
-            switch (input) {
-                case "1" -> handleFR1OwnerListing();
-                case "2" -> handleFR2AdminModeration();
-                case "3" -> handleFR3SeekerSearch();
-                case "4" -> handleFR4SeekerFavourites();
-                case "5" -> handleFR5SiteVisitsAndEnquiries();
-                case "6" -> handleFR6LeaseManagement();
-                case "7" -> handleFR7RentDueEngine();
-                case "8" -> handleFR8TenantPortal();
-                case "9" -> handleViewWeeklySampleData();
-                case "0" -> handleExit();
-                default -> System.out.println("\n[!] Invalid selection. Please enter a number between 0 and 9.\n");
+            try {
+                switch (input) {
+                    case "1" -> handleFR1OwnerListing();
+                    case "2" -> handleFR2AdminModeration();
+                    case "3" -> handleFR3SeekerSearch();
+                    case "4" -> handleFR4SeekerFavourites();
+                    case "5" -> handleFR5SiteVisitsAndEnquiries();
+                    case "6" -> handleFR6LeaseManagement();
+                    case "7" -> handleFR7RentDueEngine();
+                    case "8" -> handleFR8TenantPortal();
+                    case "9" -> handleViewWeeklySampleData();
+                    case "0" -> handleExit();
+                    default -> System.out.println("\n[!] Invalid selection. Please enter a number between 0 and 9.\n");
+                }
+            } catch (ListingValidationException e) {
+                // Recovering from custom checked exception
+                System.out.println("\n[MENU RECOVERY] Caught Checked ListingValidationException: " + e.getMessage());
+                System.out.println("[System Status] Handled cleanly. Returning to main menu.");
+            } catch (PropertyNotFoundException | UnauthorizedAccessException | InvalidStateTransitionException e) {
+                // Demonstrating Multi-Catch (A1-EX-03) and recovering from unchecked domain exceptions
+                System.out.println("\n[MENU RECOVERY] Caught Domain Exception via Multi-Catch: " + e.getMessage());
+                System.out.println("[System Status] Handled cleanly. Returning to main menu.");
+            } catch (Exception e) {
+                System.out.println("\n[MENU RECOVERY] Caught Unexpected Exception: " + e.getMessage());
             }
 
             if (running) {
@@ -81,13 +105,42 @@ public class ConsoleMenuApp {
 
     // --- Option Handlers ---
 
-    private void handleFR1OwnerListing() {
+    private void handleFR1OwnerListing() throws ListingValidationException {
         System.out.println("\n--- [FR1] OWNER PROPERTY LISTING MANAGEMENT ---");
         System.out.println("Role: " + Constants.ROLE_OWNER);
         System.out.println("Action: Create, edit, and deactivate real estate listings.");
         System.out.println("Status Lifecycle: " + Constants.STATUS_DRAFT + " -> " + Constants.STATUS_PENDING_REVIEW + " -> " + Constants.STATUS_APPROVED);
         System.out.println("Allowed Rent Limits: INR " + Constants.MIN_MONTHLY_RENT + " to INR " + Constants.MAX_MONTHLY_RENT);
-        System.out.println("[Ready] Ready for Model entities and ListingService integration in upcoming tasks.");
+
+        // Enforce Business Rule 1: Financial & Listing Invariant Validation
+        System.out.println("\n[Enforcing Business Rule 1: Financial & Invariant Validation]");
+        Property validProperty = new Property(101L, 1L, "Marina Bay 3BHK", "Luxury sea view apartment",
+                "APARTMENT", "Chennai", "Besant Nagar", 3, 45000.0, 100000.0, Constants.STATUS_DRAFT);
+        BusinessRuleEnforcer.validateListingInvariants(validProperty);
+        System.out.println("  [PASS] Valid Property passed: " + validProperty.getTitle() + " (Rent: INR " + validProperty.getMonthlyRent() + ", Deposit: INR " + validProperty.getDepositAmount() + ")");
+
+        System.out.println("\n[Testing Business Rule 1 Violation: Rent below INR " + Constants.MIN_MONTHLY_RENT + "]");
+        Property invalidProperty = new Property(102L, 1L, "Budget Micro-Room", "Invalid rent",
+                "ROOM", "Chennai", "Velachery", 1, 500.0, 2000.0, Constants.STATUS_DRAFT);
+        try {
+            BusinessRuleEnforcer.validateListingInvariants(invalidProperty);
+        } catch (ListingValidationException e) {
+            System.out.println("  [RECOVERED] Gracefully caught ListingValidationException: " + e.getMessage());
+        }
+
+        // Enforce Business Rule 2A: Ownership Authorization Check
+        System.out.println("\n[Enforcing Business Rule 2A: Ownership Authorization (IDOR Protection)]");
+        User owner = new User(1L, "Rajesh", "Kumar", "rajesh@example.com", "9876543210", Constants.ROLE_OWNER);
+        User intruder = new User(99L, "Unauthorized", "User", "intruder@example.com", "9000000000", Constants.ROLE_SEEKER);
+
+        BusinessRuleEnforcer.verifyOwnershipAuthorization(validProperty, owner);
+        System.out.println("  [PASS] Owner verified for property modification: " + owner.getFullName());
+
+        try {
+            BusinessRuleEnforcer.verifyOwnershipAuthorization(validProperty, intruder);
+        } catch (UnauthorizedAccessException e) {
+            System.out.println("  [RECOVERED] Gracefully caught UnauthorizedAccessException: " + e.getMessage());
+        }
     }
 
     private void handleFR2AdminModeration() {
@@ -126,7 +179,22 @@ public class ConsoleMenuApp {
         System.out.println("Roles: " + Constants.ROLE_OWNER + " & " + Constants.ROLE_TENANT);
         System.out.println("Action: Create digital rental lease binding tenant to approved property.");
         System.out.println("Property Status Transition: Property moves to " + Constants.STATUS_RENTED);
-        System.out.println("[Ready] Ready for Lease entity and LeaseService in Task 4, 6 & 8.");
+
+        // Enforce Business Rule 2B: State Transition Validation
+        System.out.println("\n[Enforcing Business Rule 2B: Valid State Transition for Lease Creation]");
+        Property approvedProperty = new Property(201L, 1L, "Greenwood Villa", "Spacious 4BHK",
+                "VILLA", "Bangalore", "Indiranagar", 4, 80000.0, 250000.0, Constants.STATUS_APPROVED);
+        BusinessRuleEnforcer.verifyCanCreateLease(approvedProperty);
+        System.out.println("  [PASS] Lease permitted for APPROVED property: " + approvedProperty.getTitle());
+
+        System.out.println("\n[Testing Business Rule 2B Violation: Attempting lease on DRAFT property]");
+        Property draftProperty = new Property(202L, 1L, "Unapproved Apartment", "Pending property",
+                "APARTMENT", "Bangalore", "Whitefield", 2, 28000.0, 60000.0, Constants.STATUS_DRAFT);
+        try {
+            BusinessRuleEnforcer.verifyCanCreateLease(draftProperty);
+        } catch (InvalidStateTransitionException | PropertyNotFoundException e) {
+            System.out.println("  [RECOVERED] Multi-catch caught domain exception: " + e.getMessage());
+        }
     }
 
     private void handleFR7RentDueEngine() {
@@ -161,8 +229,9 @@ public class ConsoleMenuApp {
 
     public static void main(String[] args) {
         ConsoleMenuApp app = new ConsoleMenuApp();
-        Scanner scanner = new Scanner(System.in);
-        app.start(scanner);
-        scanner.close();
+        // Demonstrating try-with-resources (A1-EX-04)
+        try (Scanner scanner = new Scanner(System.in)) {
+            app.start(scanner);
+        }
     }
 }

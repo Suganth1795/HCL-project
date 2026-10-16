@@ -11,7 +11,7 @@ import java.util.Scanner;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@DisplayName("Task 3: Console Menu Application Tests")
+@DisplayName("Console Menu Application Tests")
 class ConsoleMenuAppTest {
 
     @Test
@@ -69,6 +69,52 @@ class ConsoleMenuAppTest {
             assertTrue(output.contains("FR7: Monthly Rent Due Engine"));
             assertTrue(output.contains("FR8: Tenant Portal"));
             assertTrue(output.contains("Exit System"));
+        } finally {
+            System.setOut(originalOut);
+        }
+    }
+
+    @Test
+    @DisplayName("Option 1 executes Business Rule 1 & 2A enforcement and recovers gracefully")
+    void testFR1OptionEnforcesRulesAndRecovers() {
+        ConsoleMenuApp app = new ConsoleMenuApp();
+        String input = "1\n\n0\n";
+        Scanner scanner = new Scanner(new ByteArrayInputStream(input.getBytes(StandardCharsets.UTF_8)));
+
+        ByteArrayOutputStream outContent = new ByteArrayOutputStream();
+        PrintStream originalOut = System.out;
+        System.setOut(new PrintStream(outContent));
+
+        try {
+            app.start(scanner);
+            String output = outContent.toString();
+            assertTrue(output.contains("[Enforcing Business Rule 1: Financial & Invariant Validation]"));
+            assertTrue(output.contains("[PASS] Valid Property passed"));
+            assertTrue(output.contains("[RECOVERED] Gracefully caught ListingValidationException"));
+            assertTrue(output.contains("[PASS] Owner verified for property modification"));
+            assertTrue(output.contains("[RECOVERED] Gracefully caught UnauthorizedAccessException"));
+        } finally {
+            System.setOut(originalOut);
+        }
+    }
+
+    @Test
+    @DisplayName("Option 6 executes Business Rule 2B state transition check and recovers via multi-catch")
+    void testFR6OptionEnforcesStateTransitionAndRecovers() {
+        ConsoleMenuApp app = new ConsoleMenuApp();
+        String input = "6\n\n0\n";
+        Scanner scanner = new Scanner(new ByteArrayInputStream(input.getBytes(StandardCharsets.UTF_8)));
+
+        ByteArrayOutputStream outContent = new ByteArrayOutputStream();
+        PrintStream originalOut = System.out;
+        System.setOut(new PrintStream(outContent));
+
+        try {
+            app.start(scanner);
+            String output = outContent.toString();
+            assertTrue(output.contains("[Enforcing Business Rule 2B: Valid State Transition for Lease Creation]"));
+            assertTrue(output.contains("[PASS] Lease permitted for APPROVED property"));
+            assertTrue(output.contains("[RECOVERED] Multi-catch caught domain exception"));
         } finally {
             System.setOut(originalOut);
         }

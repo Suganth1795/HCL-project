@@ -77,6 +77,21 @@ Provides a menu-driven CLI interface with dedicated handlers for each Functional
   2. `PriceRangeSearchStrategy`: Dynamic budget filtering between minimum and maximum monthly rent bounds.
 - **`SearchCriteria`**: Immutable Java 21 Record holding multi-attribute search parameters.
 
+#### F. Custom Exceptions, Business Rule Enforcement & Error Recovery
+- **Custom Checked Exception (`A1-EX-01`)**:
+  - `ListingValidationException`: Thrown when a property violates financial or invariant rules (mandatory title/city, rent out of bounds, insufficient deposit).
+- **Custom Unchecked Exceptions (`A1-EX-02`)**:
+  - `PropertyNotFoundException`: Thrown when querying a non-existent property identifier.
+  - `UnauthorizedAccessException`: Thrown when an unprivileged user attempts unauthorized mutation (IDOR protection).
+  - `InvalidStateTransitionException`: Thrown on illegal finite state machine transitions (e.g. attempting to lease a `DRAFT` or already `RENTED` property).
+- **Enforced Business Rules (`BusinessRuleEnforcer.java`)**:
+  - **Rule 1 (Listing Invariants & Financials)**: Title & city non-blank, rent bounded to `[INR 1,000, INR 1,000,000]`, and deposit $\ge$ 2x monthly rent.
+  - **Rule 2 (Ownership & State Machine)**: Only registered owner or Admin can modify a property; leases can only be formed on `APPROVED` properties.
+- **Menu Error Recovery (`A1-EX-03`, `A1-EX-04`)**:
+  - Implements multi-catch `catch (PropertyNotFoundException | UnauthorizedAccessException | InvalidStateTransitionException e)` and checked exception handlers in `ConsoleMenuApp`.
+  - Try-with-resources (`try (Scanner scanner = new Scanner(System.in))`) guarantees automatic resource cleanup.
+  - Interactive loop catches all domain errors, outputs diagnostic guidance, and resumes execution seamlessly without crashing.
+
 ---
 
 ### 5. Maven Build & CLI Execution Instructions
@@ -103,6 +118,7 @@ mvn exec:java
 | **Task 3** | Prepare Maven parent structure (`pom.xml`) and console menu with one option per functional requirement | `pom.xml`<br>`src/.../ConsoleMenuApp.java`<br>`src/test/.../ConsoleMenuAppTest.java`<br>`README.md` | Executed `mvn clean test` (Java 21): 3/3 tests passed with 0 failures; verified console menu displays FR1-FR8 options, sample report, and exits cleanly. | [`45f12d4`](https://github.com/Suganth1795/HCL-project/commit/45f12d4) | **Pushed** | Task 4: Create model classes for the three main entities |
 | **Task 4** | Create model classes for the three main entities (`Property`, `User`, `Lease`) | `src/.../Property.java`<br>`src/.../User.java`<br>`src/.../Lease.java`<br>`src/test/.../ModelTest.java`<br>`README.md` | Executed `mvn clean test` (Java 21): 8/8 tests passed with 0 failures; validated encapsulation, Comparable sorting by rent, Period duration calculation, and identity contracts. | [`475099a`](https://github.com/Suganth1795/HCL-project/commit/475099a) | **Pushed** | Task 5: Add BaseEntity, the role hierarchy, and a Strategy interface with two implementations |
 | **Task 5** | Add BaseEntity, the role hierarchy, and a Strategy interface with two implementations; use feature branch and pull request workflow | `src/.../BaseEntity.java`<br>`src/.../Role.java`<br>`src/.../RoleHierarchy.java`<br>`src/.../Property.java`<br>`src/.../User.java`<br>`src/.../Lease.java`<br>`src/.../SearchCriteria.java`<br>`src/.../SearchStrategy.java`<br>`src/.../CitySearchStrategy.java`<br>`src/.../PriceRangeSearchStrategy.java`<br>`src/test/.../BaseEntityAndRoleTest.java`<br>`src/test/.../SearchStrategyTest.java`<br>`README.md` | Executed `mvn clean test` (Java 21): 16/16 tests passed with 0 failures; validated BaseEntity audit timestamps, role hierarchy resolution & access rules, and city/price-range search strategies. | [`fe360ff`](https://github.com/Suganth1795/HCL-project/commit/fe360ff) | **Pushed** | Task 6: Add custom exception package, enforce two business rules, and recover from errors in menu |
+| **Task 6** | Add custom exception package, enforce two business rules, and recover from errors in the menu | `src/.../ListingValidationException.java`<br>`src/.../PropertyNotFoundException.java`<br>`src/.../UnauthorizedAccessException.java`<br>`src/.../InvalidStateTransitionException.java`<br>`src/.../BusinessRuleEnforcer.java`<br>`src/.../ConsoleMenuApp.java`<br>`src/.../Constants.java`<br>`src/test/.../BusinessRuleExceptionTest.java`<br>`src/test/.../ConsoleMenuAppTest.java`<br>`README.md` | Executed `mvn clean test` (Java 21): 26/26 tests passed with 0 failures; validated custom checked/unchecked exceptions, financial/ownership business rules, multi-catch, and in-menu error recovery. | *Pending Approval* | *Awaiting Approval* | Task 7: Use List, Set, and Queue and implement FR1–FR3 in console application |
 
 ---
 

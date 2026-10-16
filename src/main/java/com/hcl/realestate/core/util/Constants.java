@@ -63,6 +63,7 @@ public final class Constants {
     public static final double MIN_MONTHLY_RENT = 1000.00;
     public static final double MAX_MONTHLY_RENT = 1000000.00;
     public static final int MIN_SECURITY_DEPOSIT_MULTIPLIER = 1;
+    public static final int DEFAULT_SECURITY_DEPOSIT_MULTIPLIER = 2;
     public static final int RENT_DUE_DAY_OF_MONTH = 5;
     public static final int DEFAULT_PAGE_SIZE = 10;
     public static final int MIN_BHK = 1;
