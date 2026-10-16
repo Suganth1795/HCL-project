@@ -1,0 +1,76 @@
+package com.hcl.realestate.core.app;
+
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
+import java.nio.charset.StandardCharsets;
+import java.util.Scanner;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+@DisplayName("Task 3: Console Menu Application Tests")
+class ConsoleMenuAppTest {
+
+    @Test
+    @DisplayName("Option 0 terminates the menu loop cleanly")
+    void testExitOptionTerminatesLoop() {
+        ConsoleMenuApp app = new ConsoleMenuApp();
+        String input = "0\n";
+        Scanner scanner = new Scanner(new ByteArrayInputStream(input.getBytes(StandardCharsets.UTF_8)));
+
+        assertTrue(app.isRunning(), "App should initially be running");
+        app.start(scanner);
+        assertFalse(app.isRunning(), "App should terminate after option 0");
+    }
+
+    @Test
+    @DisplayName("Option 9 prints 1-week sample data and exits")
+    void testSampleDataOptionAndExit() {
+        ConsoleMenuApp app = new ConsoleMenuApp();
+        String input = "9\n\n0\n";
+        Scanner scanner = new Scanner(new ByteArrayInputStream(input.getBytes(StandardCharsets.UTF_8)));
+
+        ByteArrayOutputStream outContent = new ByteArrayOutputStream();
+        PrintStream originalOut = System.out;
+        System.setOut(new PrintStream(outContent));
+
+        try {
+            app.start(scanner);
+            String output = outContent.toString();
+            assertTrue(output.contains("1 WEEK SAMPLE TRANSACTION DATA"), "Should display sample data header");
+            assertTrue(output.contains("Prestige Tech Park"), "Should display Bangalore property listing");
+            assertTrue(output.contains("Sea Breeze"), "Should display Chennai property listing");
+            assertTrue(output.contains("Total 7-Day Rent Dues Collected"), "Should display aggregate summary");
+        } finally {
+            System.setOut(originalOut);
+        }
+    }
+
+    @Test
+    @DisplayName("Menu displays all 8 Functional Requirements (FR1 to FR8)")
+    void testMenuContainsAllFunctionalRequirements() {
+        ConsoleMenuApp app = new ConsoleMenuApp();
+        ByteArrayOutputStream outContent = new ByteArrayOutputStream();
+        PrintStream originalOut = System.out;
+        System.setOut(new PrintStream(outContent));
+
+        try {
+            app.printMenu();
+            String output = outContent.toString();
+            assertTrue(output.contains("FR1: Owner Listing Management"));
+            assertTrue(output.contains("FR2: Admin Listing Moderation"));
+            assertTrue(output.contains("FR3: Seeker Dynamic Property Search"));
+            assertTrue(output.contains("FR4: Seeker Favourites & Shortlists"));
+            assertTrue(output.contains("FR5: Site Visits & Inquiries"));
+            assertTrue(output.contains("FR6: Lease Agreement Creation"));
+            assertTrue(output.contains("FR7: Monthly Rent Due Engine"));
+            assertTrue(output.contains("FR8: Tenant Portal"));
+            assertTrue(output.contains("Exit System"));
+        } finally {
+            System.setOut(originalOut);
+        }
+    }
+}
