@@ -27,8 +27,8 @@ class ConsoleMenuAppTest {
     }
 
     @Test
-    @DisplayName("Option 9 prints 1-week sample data and exits")
-    void testSampleDataOptionAndExit() {
+    @DisplayName("Option 9 prints 1-week sample data and sorted city report")
+    void testSampleDataOptionAndSortedReport() {
         ConsoleMenuApp app = new ConsoleMenuApp();
         String input = "9\n\n0\n";
         Scanner scanner = new Scanner(new ByteArrayInputStream(input.getBytes(StandardCharsets.UTF_8)));
@@ -44,6 +44,8 @@ class ConsoleMenuAppTest {
             assertTrue(output.contains("Prestige Tech Park"), "Should display Bangalore property listing");
             assertTrue(output.contains("Sea Breeze"), "Should display Chennai property listing");
             assertTrue(output.contains("Total 7-Day Rent Dues Collected"), "Should display aggregate summary");
+            assertTrue(output.contains("REAL ESTATE VERIFIED PROPERTIES REPORT"), "Should display sorted city report");
+            assertTrue(output.contains("OVERALL PORTFOLIO"), "Should display overall portfolio summary");
         } finally {
             System.setOut(originalOut);
         }
@@ -99,8 +101,54 @@ class ConsoleMenuAppTest {
     }
 
     @Test
-    @DisplayName("Option 6 executes Business Rule 2B state transition check and recovers via multi-catch")
-    void testFR6OptionEnforcesStateTransitionAndRecovers() {
+    @DisplayName("Option 4 displays Seeker Favourites mapped per User ID")
+    void testFR4OptionDisplaysUserFavouritesMap() {
+        ConsoleMenuApp app = new ConsoleMenuApp();
+        String input = "4\n\n0\n";
+        Scanner scanner = new Scanner(new ByteArrayInputStream(input.getBytes(StandardCharsets.UTF_8)));
+
+        ByteArrayOutputStream outContent = new ByteArrayOutputStream();
+        PrintStream originalOut = System.out;
+        System.setOut(new PrintStream(outContent));
+
+        try {
+            app.start(scanner);
+            String output = outContent.toString();
+            assertTrue(output.contains("[FR4] SEEKER FAVOURITES & SHORTLISTS"));
+            assertTrue(output.contains("Seeker ID 10 Favourites"));
+            assertTrue(output.contains("Total Users with Active Shortlists"));
+        } finally {
+            System.setOut(originalOut);
+        }
+    }
+
+    @Test
+    @DisplayName("Option 5 executes Inquiry and Site Visit flows mapped per Property ID")
+    void testFR5OptionExecutesEngagementFlows() {
+        ConsoleMenuApp app = new ConsoleMenuApp();
+        String input = "5\n\n0\n";
+        Scanner scanner = new Scanner(new ByteArrayInputStream(input.getBytes(StandardCharsets.UTF_8)));
+
+        ByteArrayOutputStream outContent = new ByteArrayOutputStream();
+        PrintStream originalOut = System.out;
+        System.setOut(new PrintStream(outContent));
+
+        try {
+            app.start(scanner);
+            String output = outContent.toString();
+            assertTrue(output.contains("[FR5] SITE VISITS & DIRECT OWNER ENQUIRIES"));
+            assertTrue(output.contains("Enquiry Flow"));
+            assertTrue(output.contains("Owner responded"));
+            assertTrue(output.contains("Site Visit Flow"));
+            assertTrue(output.contains("Owner confirmed visit"));
+        } finally {
+            System.setOut(originalOut);
+        }
+    }
+
+    @Test
+    @DisplayName("Option 6 executes Business Rule 2B state transition check and creates digital lease")
+    void testFR6OptionEnforcesStateTransitionAndCreatesLease() {
         ConsoleMenuApp app = new ConsoleMenuApp();
         String input = "6\n\n0\n";
         Scanner scanner = new Scanner(new ByteArrayInputStream(input.getBytes(StandardCharsets.UTF_8)));
@@ -115,6 +163,8 @@ class ConsoleMenuAppTest {
             assertTrue(output.contains("[Enforcing Business Rule 2B: Valid State Transition for Lease Creation]"));
             assertTrue(output.contains("[PASS] Lease permitted for APPROVED property"));
             assertTrue(output.contains("[RECOVERED] Multi-catch caught domain exception"));
+            assertTrue(output.contains("Creating & Registering Active Lease Contract"));
+            assertTrue(output.contains("Total Active Leases in System Map"));
         } finally {
             System.setOut(originalOut);
         }

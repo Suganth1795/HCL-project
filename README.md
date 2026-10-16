@@ -108,6 +108,25 @@ Provides a menu-driven CLI interface with dedicated handlers for each Functional
   - **FR2 (Admin Moderation)**: Displays FIFO queue depth, peeks oldest submission, and executes approval decision transitioning status to `APPROVED`.
   - **FR3 (Seeker Dynamic Search & Shortlists)**: Displays available cities (`Set`), executes multi-criteria search (`List`), and bookmarks preferred properties into deduplicated favourites (`Set`).
 
+#### H. Maps, Comparators, Sorted Reports & FR4–FR6 Workflows
+- **`Map` Collections (`A1-COL-03`)**:
+  - `Map<String, List<Property>>`: City grouping structure (`TreeMap<>(String.CASE_INSENSITIVE_ORDER)`) categorizing properties by metropolitan location.
+  - `Map<Long, Set<Property>>`: Seeker favorites mapped by user ID (FR4), guaranteeing unique shortlists per user.
+  - `Map<Long, List<Enquiry>>`: Direct prospective messages mapped per property ID (FR5).
+  - `Map<Long, List<VisitRequest>>`: Physical site visit appointments mapped per property ID (FR5).
+  - `Map<Long, Lease>`: Binding digital tenancy agreements mapped per property ID (FR6).
+- **Two Custom Comparators (`A1-COL-06`) (`PropertyComparators.java`)**:
+  - **Comparator 1 (`BY_RENT_ASC` / `BY_RENT_DESC`)**: Evaluates natural budget pricing ascending or descending.
+  - **Comparator 2 (`BY_CITY_THEN_RENT`)**: Multi-field chained Comparator sorting primarily by City name alphabetically, then by monthly rent ascending, and breaking ties by BHK descending.
+- **Sorted City Report Generator**:
+  - Groups verified active listings by city via `Map<String, List<Property>>`.
+  - Sorts each city's properties using selected Comparator.
+  - Calculates city and portfolio aggregates (listing count, average rent, min/max rent).
+- **Interactive FR4–FR6 Workflows in Console Application**:
+  - **FR4 (Seeker Shortlists)**: View and bookmark favorite homes indexed by Seeker ID (`Map`).
+  - **FR5 (Site Visits & Inquiries)**: Send direct inquiries, receive owner replies, and schedule/confirm site visits (`Maps`).
+  - **FR6 (Digital Lease Creation)**: Formulates binding lease contracts, checks ownership and state transitions, registers active lease in `Map<Long, Lease>`, and transitions property to `RENTED`.
+
 ---
 
 ### 5. Maven Build & CLI Execution Instructions
@@ -136,6 +155,7 @@ mvn exec:java
 | **Task 5** | Add BaseEntity, the role hierarchy, and a Strategy interface with two implementations; use feature branch and pull request workflow | `src/.../BaseEntity.java`<br>`src/.../Role.java`<br>`src/.../RoleHierarchy.java`<br>`src/.../Property.java`<br>`src/.../User.java`<br>`src/.../Lease.java`<br>`src/.../SearchCriteria.java`<br>`src/.../SearchStrategy.java`<br>`src/.../CitySearchStrategy.java`<br>`src/.../PriceRangeSearchStrategy.java`<br>`src/test/.../BaseEntityAndRoleTest.java`<br>`src/test/.../SearchStrategyTest.java`<br>`README.md` | Executed `mvn clean test` (Java 21): 16/16 tests passed with 0 failures; validated BaseEntity audit timestamps, role hierarchy resolution & access rules, and city/price-range search strategies. | [`fe360ff`](https://github.com/Suganth1795/HCL-project/commit/fe360ff) | **Pushed** | Task 6: Add custom exception package, enforce two business rules, and recover from errors in menu |
 | **Task 6** | Add custom exception package, enforce two business rules, and recover from errors in the menu | `src/.../ListingValidationException.java`<br>`src/.../PropertyNotFoundException.java`<br>`src/.../UnauthorizedAccessException.java`<br>`src/.../InvalidStateTransitionException.java`<br>`src/.../BusinessRuleEnforcer.java`<br>`src/.../ConsoleMenuApp.java`<br>`src/.../Constants.java`<br>`src/test/.../BusinessRuleExceptionTest.java`<br>`src/test/.../ConsoleMenuAppTest.java`<br>`README.md` | Executed `mvn clean test` (Java 21): 26/26 tests passed with 0 failures; validated custom checked/unchecked exceptions, financial/ownership business rules, multi-catch, and in-menu error recovery. | [`4f7ff51`](https://github.com/Suganth1795/HCL-project/commit/4f7ff51) | **Pushed** | Task 7: Use List, Set, and Queue and implement FR1–FR3 in console application |
 | **Task 7** | Use List, Set, and Queue and implement FR1–FR3 in the console application | `src/.../ApprovalQueueService.java`<br>`src/.../ListingService.java`<br>`src/.../ListingServiceImpl.java`<br>`src/.../ConsoleMenuApp.java`<br>`src/test/.../ListingServiceCollectionsTest.java`<br>`README.md` | Executed `mvn clean test` (Java 21): 34/34 tests passed with 0 failures; validated List catalog & search results, Set deduplicated favourites & cities, Queue FIFO admin moderation, and interactive FR1-FR3 workflows. | [`72ad858`](https://github.com/Suganth1795/HCL-project/commit/72ad858) | **Pushed** | Task 8: Use Maps, a sorted report, and two Comparators; implement FR4–FR6 |
+| **Task 8** | Use Maps, a sorted report, and two Comparators; implement FR4–FR6 | `src/.../PropertyComparators.java`<br>`src/.../Enquiry.java`<br>`src/.../VisitRequest.java`<br>`src/.../ListingService.java`<br>`src/.../ListingServiceImpl.java`<br>`src/.../ConsoleMenuApp.java`<br>`src/test/.../PropertyComparatorsTest.java`<br>`src/test/.../EngagementAndLeaseServiceTest.java`<br>`src/test/.../ConsoleMenuAppTest.java`<br>`README.md` | Executed `mvn clean test` (Java 21): 46/46 tests passed with 0 failures; validated single and multi-field Comparators, city-grouped Map reports, FR4 user favourites Map, FR5 inquiries/visits Maps, and FR6 digital lease Map contract. | *Pending Approval* | *Awaiting Approval* | Task 9: Create CrudRepository<T, ID> and reusable InMemoryRepository implementations, and load seed data from CSV |
 
 ---
 
