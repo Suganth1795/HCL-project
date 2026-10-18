@@ -127,6 +127,28 @@ Provides a menu-driven CLI interface with dedicated handlers for each Functional
   - **FR5 (Site Visits & Inquiries)**: Send direct inquiries, receive owner replies, and schedule/confirm site visits (`Maps`).
   - **FR6 (Digital Lease Creation)**: Formulates binding lease contracts, checks ownership and state transitions, registers active lease in `Map<Long, Lease>`, and transitions property to `RENTED`.
 
+#### I. Generic CRUD Repository Architecture, Reusable In-Memory Store & CSV Seed Loader
+- **Generic CRUD Repository Contract (`A1-GEN-01`, `A1-GEN-02`) (`CrudRepository<T, ID>`)**:
+  - Defines a standard generic repository interface parameterised by domain entity `<T>` and identifier `<ID>`.
+  - Operations include `save(T entity)`, `findById(ID id)`, `findAll()`, `deleteById(ID id)`, `existsById(ID id)`, `count()`, and `deleteAll()`.
+  - Leverages Java `Optional<T>` to provide null-safe single entity retrieval without risking `NullPointerException`.
+- **Reusable In-Memory Repository Implementation (`InMemoryGenericRepository<T, ID>`)**:
+  - Provides thread-safe, lock-free in-memory persistence powered by `ConcurrentHashMap<ID, T>`.
+  - Employs functional lambda interfaces (`Function<T, ID> idExtractor`, `BiConsumer<T, ID> idSetter`, `Supplier<ID> idGenerator`) to manipulate entity identities generically across disparate models without reflection overhead.
+  - Returns unmodifiable defensive copies on queries to guarantee data encapsulation and prevent outside state pollution.
+- **Specialized Domain Repositories**:
+  - `PropertyRepository` / `InMemoryPropertyRepository`: Extends generic CRUD with domain queries (`findByCity`, `findByOwnerId`, `findByStatus`, `findByPriceRange`).
+  - `UserRepository` / `InMemoryUserRepository`: Extends generic CRUD with identity lookups (`findByEmail`, `findByRole`).
+  - Automatically advances internal sequence IDs to prevent collisions when existing seed records are inserted.
+- **CSV Seed Data & Modern Java I/O (`A1-IO-01..03`) (`CsvSeedLoader.java` & `properties.csv`)**:
+  - `properties.csv` contains realistic seed listings across metropolitan hubs (Bangalore, Chennai, Mumbai, Hyderabad, Gurgaon, Pune) spanning property types and statuses.
+  - `CsvSeedLoader` utilizes modern `try-with-resources` with `BufferedReader` and explicit UTF-8 character encoding.
+  - Features robust row parsing, header autodetection and skipping, quotation trimming, and error tolerance that gracefully ignores malformed records without aborting execution.
+  - Provides direct stream, classpath resource, and external file loading into any `PropertyRepository`.
+- **Service & Console App Integration**:
+  - `ListingServiceImpl` accepts `PropertyRepository` via constructor injection.
+  - `ConsoleMenuApp` seeds initial catalog data directly from `/data/properties.csv` via `CsvSeedLoader` and reports repository statistics.
+
 ---
 
 ### 5. Maven Build & CLI Execution Instructions
@@ -147,7 +169,7 @@ mvn exec:java
 ### 6. Daily Work Log (HCL 10 Selected Tasks)
 
 | Task / Day | Task Description | Files Changed | Validation Performed & Actual Result | Commit Hash | Push Status | Next Task |
-| :---: | :--- | :--- | :--- | :---: | :---: | :--- |
+| :---: | :--- | :--- | :--- | :--- | :---: | :--- |
 | **Task 1** | Convert 8 FRs into user stories, estimate story points, and define Definition of Done (DoD) | `docs/USER-STORIES.md`<br>`README.md` | Verified all 8 FRs mapped to US-01..US-08 with Given-When-Then acceptance criteria, 34 story points estimation, DoR/DoD checklists, and Kanban workflow. | [`c365ff3`](https://github.com/Suganth1795/HCL-project/commit/c365ff3) | **Pushed** | Task 2: Repository docs, `.gitignore`, Constants class, and 1-week array sample data |
 | **Task 2** | Set up repository docs and `.gitignore`, create Constants class, add 1-week sample data using arrays | `.gitignore`<br>`src/.../Constants.java`<br>`src/.../SampleArrayData.java`<br>`README.md` | Compiled with `javac` (0 errors); executed `SampleArrayData.main()` verifying 7-day tabular report, total collections (INR 276,000), and visit metrics. | [`39b5ccc`](https://github.com/Suganth1795/HCL-project/commit/39b5ccc) | **Pushed** | Task 3: Maven parent structure and console menu with one option per functional requirement |
 | **Task 3** | Prepare Maven parent structure (`pom.xml`) and console menu with one option per functional requirement | `pom.xml`<br>`src/.../ConsoleMenuApp.java`<br>`src/test/.../ConsoleMenuAppTest.java`<br>`README.md` | Executed `mvn clean test` (Java 21): 3/3 tests passed with 0 failures; verified console menu displays FR1-FR8 options, sample report, and exits cleanly. | [`45f12d4`](https://github.com/Suganth1795/HCL-project/commit/45f12d4) | **Pushed** | Task 4: Create model classes for the three main entities |
@@ -156,6 +178,7 @@ mvn exec:java
 | **Task 6** | Add custom exception package, enforce two business rules, and recover from errors in the menu | `src/.../ListingValidationException.java`<br>`src/.../PropertyNotFoundException.java`<br>`src/.../UnauthorizedAccessException.java`<br>`src/.../InvalidStateTransitionException.java`<br>`src/.../BusinessRuleEnforcer.java`<br>`src/.../ConsoleMenuApp.java`<br>`src/.../Constants.java`<br>`src/test/.../BusinessRuleExceptionTest.java`<br>`src/test/.../ConsoleMenuAppTest.java`<br>`README.md` | Executed `mvn clean test` (Java 21): 26/26 tests passed with 0 failures; validated custom checked/unchecked exceptions, financial/ownership business rules, multi-catch, and in-menu error recovery. | [`4f7ff51`](https://github.com/Suganth1795/HCL-project/commit/4f7ff51) | **Pushed** | Task 7: Use List, Set, and Queue and implement FR1–FR3 in console application |
 | **Task 7** | Use List, Set, and Queue and implement FR1–FR3 in the console application | `src/.../ApprovalQueueService.java`<br>`src/.../ListingService.java`<br>`src/.../ListingServiceImpl.java`<br>`src/.../ConsoleMenuApp.java`<br>`src/test/.../ListingServiceCollectionsTest.java`<br>`README.md` | Executed `mvn clean test` (Java 21): 34/34 tests passed with 0 failures; validated List catalog & search results, Set deduplicated favourites & cities, Queue FIFO admin moderation, and interactive FR1-FR3 workflows. | [`72ad858`](https://github.com/Suganth1795/HCL-project/commit/72ad858) | **Pushed** | Task 8: Use Maps, a sorted report, and two Comparators; implement FR4–FR6 |
 | **Task 8** | Use Maps, a sorted report, and two Comparators; implement FR4–FR6 | `src/.../PropertyComparators.java`<br>`src/.../Enquiry.java`<br>`src/.../VisitRequest.java`<br>`src/.../ListingService.java`<br>`src/.../ListingServiceImpl.java`<br>`src/.../ConsoleMenuApp.java`<br>`src/test/.../PropertyComparatorsTest.java`<br>`src/test/.../EngagementAndLeaseServiceTest.java`<br>`src/test/.../ConsoleMenuAppTest.java`<br>`README.md` | Executed `mvn clean test` (Java 21): 46/46 tests passed with 0 failures; validated single and multi-field Comparators, city-grouped Map reports, FR4 user favourites Map, FR5 inquiries/visits Maps, and FR6 digital lease Map contract. | [`0c00a3d`](https://github.com/Suganth1795/HCL-project/commit/0c00a3d) | **Pushed** | Task 9: Create CrudRepository<T, ID> and reusable InMemoryRepository implementations, and load seed data from CSV |
+| **Task 9** | Create CrudRepository<T, ID> and reusable InMemoryRepository implementations, and load seed data from CSV | `src/.../CrudRepository.java`<br>`src/.../InMemoryGenericRepository.java`<br>`src/.../PropertyRepository.java`<br>`src/.../InMemoryPropertyRepository.java`<br>`src/.../UserRepository.java`<br>`src/.../InMemoryUserRepository.java`<br>`src/.../CsvSeedLoader.java`<br>`src/main/resources/data/properties.csv`<br>`src/.../ListingServiceImpl.java`<br>`src/.../ConsoleMenuApp.java`<br>`src/test/.../InMemoryGenericRepositoryTest.java`<br>`src/test/.../EntityRepositoriesTest.java`<br>`src/test/.../CsvSeedLoaderTest.java`<br>`README.md` | Executed `mvn clean test` (Java 21): 63/63 tests passed with 0 failures; validated generic type parameters & lambda functional hooks, thread-safe ConcurrentHashMap storage, domain repository queries, CSV resource parsing, and seed loading. | *Pending Approval* | *Awaiting Approval* | Task 10: Review memory pitfalls and document stack/heap diagram for one business method |
 
 ---
 

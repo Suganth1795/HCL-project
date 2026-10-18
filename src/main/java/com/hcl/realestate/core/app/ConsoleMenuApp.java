@@ -50,24 +50,29 @@ public class ConsoleMenuApp {
     }
 
     /**
-     * Seeds initial catalog data with sample properties across cities and statuses.
+     * Seeds initial catalog data with sample properties from CSV resource or fallback seed.
      */
     private void seedInitialData() {
-        listingService.seedApprovedProperty(new Property(101L, 1L, "Marina Bay 3BHK", "Luxury sea view apartment",
-                "APARTMENT", "Chennai", "Besant Nagar", 3, 45000.0, 100000.0, Constants.STATUS_APPROVED));
-        listingService.seedApprovedProperty(new Property(102L, 2L, "Prestige Tech Park Studio", "Near IT corridor",
-                "STUDIO", "Bangalore", "Whitefield", 1, 18000.0, 50000.0, Constants.STATUS_APPROVED));
-        listingService.seedApprovedProperty(new Property(103L, 1L, "Greenwood Gated Villa", "Spacious 4BHK with garden",
-                "VILLA", "Bangalore", "Indiranagar", 4, 85000.0, 250000.0, Constants.STATUS_APPROVED));
-        listingService.seedApprovedProperty(new Property(104L, 3L, "Sea Breeze Beachfront Flat", "Ocean front 2BHK",
-                "APARTMENT", "Chennai", "ECR", 2, 38000.0, 80000.0, Constants.STATUS_APPROVED));
+        int csvCount = listingService.loadSeedDataFromCsv("/data/properties.csv");
+        if (csvCount == 0) {
+            listingService.seedApprovedProperty(new Property(101L, 1L, "Marina Bay 3BHK", "Luxury sea view apartment",
+                    "APARTMENT", "Chennai", "Besant Nagar", 3, 45000.0, 100000.0, Constants.STATUS_APPROVED));
+            listingService.seedApprovedProperty(new Property(102L, 2L, "Prestige Tech Park Studio", "Near IT corridor",
+                    "STUDIO", "Bangalore", "Whitefield", 1, 18000.0, 50000.0, Constants.STATUS_APPROVED));
+            listingService.seedApprovedProperty(new Property(103L, 1L, "Greenwood Gated Villa", "Spacious 4BHK with garden",
+                    "VILLA", "Bangalore", "Indiranagar", 4, 85000.0, 250000.0, Constants.STATUS_APPROVED));
+            listingService.seedApprovedProperty(new Property(104L, 3L, "Sea Breeze Beachfront Flat", "Ocean front 2BHK",
+                    "APARTMENT", "Chennai", "ECR", 2, 38000.0, 80000.0, Constants.STATUS_APPROVED));
+        }
 
-        try {
-            Property pendingProperty = new Property(105L, 2L, "Cyber Towers Executive Flat", "2BHK near Hitec City",
-                    "APARTMENT", "Hyderabad", "Gachibowli", 2, 28000.0, 60000.0, Constants.STATUS_DRAFT);
-            listingService.createListing(pendingProperty);
-        } catch (ListingValidationException ignored) {
-            // Pre-validated seed
+        if (listingService.getPendingQueueSize() == 0) {
+            try {
+                Property pendingProperty = new Property(111L, 1L, "Cyber Towers Executive Flat", "2BHK near Hitec City",
+                        "APARTMENT", "Hyderabad", "Gachibowli", 2, 28000.0, 60000.0, Constants.STATUS_DRAFT);
+                listingService.createListing(pendingProperty);
+            } catch (ListingValidationException ignored) {
+                // Pre-validated seed
+            }
         }
     }
 
@@ -378,13 +383,14 @@ public class ConsoleMenuApp {
         System.out.println("\n--- [FR8] TENANT PORTAL: LEASE & PAYMENT HISTORY ---");
         System.out.println("Role: " + Constants.ROLE_TENANT);
         System.out.println("Action: Review active lease, upcoming dues, and historical payment receipts.");
-        System.out.println("[Ready] Ready for payment tracking and receipt ledger in Task 9.");
+        System.out.println("[Ready] Ready for payment tracking and receipt ledger.");
     }
 
     private void handleViewWeeklySampleData() {
         System.out.println("\n--- [DEMO] 1-WEEK SAMPLE TRANSACTION DATA (ARRAYS) ---");
         SampleArrayData.displayWeeklyReport();
 
+        System.out.println("\n[Repository Status] PropertyRepository manages " + listingService.getPropertyRepository().count() + " total entities in memory.");
         System.out.println("\n" + listingService.generateSortedCityReport(PropertyComparators.BY_CITY_THEN_RENT));
     }
 

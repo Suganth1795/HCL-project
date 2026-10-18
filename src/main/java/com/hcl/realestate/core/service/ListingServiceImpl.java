@@ -12,6 +12,9 @@ import com.hcl.realestate.core.model.VisitRequest;
 import com.hcl.realestate.core.strategy.CitySearchStrategy;
 import com.hcl.realestate.core.strategy.PriceRangeSearchStrategy;
 import com.hcl.realestate.core.strategy.SearchStrategy;
+import com.hcl.realestate.core.io.CsvSeedLoader;
+import com.hcl.realestate.core.repository.InMemoryPropertyRepository;
+import com.hcl.realestate.core.repository.PropertyRepository;
 import com.hcl.realestate.core.util.Constants;
 import com.hcl.realestate.core.util.PropertyComparators;
 import com.hcl.realestate.core.validation.BusinessRuleEnforcer;
@@ -33,6 +36,8 @@ import java.util.concurrent.atomic.AtomicLong;
 /**
  * Concrete implementation of ListingService managing FR1 through FR6.
  * Demonstrates:
+ * - Repository Pattern with PropertyRepository & InMemoryPropertyRepository (A1-GEN-01)
+ * - CSV Data Loading via modern Java I/O (A1-IO-01..03)
  * - List (ArrayList) for property catalogs and search results
  * - Set (LinkedHashSet) for unique seeker favourites and available cities
  * - Map (HashMap, TreeMap) for city grouping, user favourites, inquiries, visits, and active leases
@@ -41,6 +46,7 @@ import java.util.concurrent.atomic.AtomicLong;
  */
 public class ListingServiceImpl implements ListingService {
 
+    private final PropertyRepository propertyRepository;
     private final List<Property> catalog = new ArrayList<>();
     private final Set<Property> favourites = new LinkedHashSet<>();
     private final Map<Long, Set<Property>> userFavourites = new HashMap<>();
@@ -58,11 +64,16 @@ public class ListingServiceImpl implements ListingService {
     private final AtomicLong leaseIdGen = new AtomicLong(700L);
 
     public ListingServiceImpl() {
-        this.approvalQueueService = new ApprovalQueueService();
+        this(new ApprovalQueueService(), new InMemoryPropertyRepository());
     }
 
     public ListingServiceImpl(ApprovalQueueService approvalQueueService) {
+        this(approvalQueueService, new InMemoryPropertyRepository());
+    }
+
+    public ListingServiceImpl(ApprovalQueueService approvalQueueService, PropertyRepository propertyRepository) {
         this.approvalQueueService = (approvalQueueService != null) ? approvalQueueService : new ApprovalQueueService();
+        this.propertyRepository = (propertyRepository != null) ? propertyRepository : new InMemoryPropertyRepository();
     }
 
     // --- FR1: Owner Listing Management ---
@@ -80,6 +91,7 @@ public class ListingServiceImpl implements ListingService {
         BusinessRuleEnforcer.validateListingInvariants(property);
 
         property.setStatus(Constants.STATUS_PENDING_REVIEW);
+        propertyRepository.save(property);
         catalog.add(property);
         approvalQueueService.enqueue(property);
 
@@ -216,7 +228,25 @@ public class ListingServiceImpl implements ListingService {
                 property.setId(propertyIdGen.incrementAndGet());
             }
             property.setStatus(Constants.STATUS_APPROVED);
+            propertyRepository.save(property);
             catalog.add(property);
+        }
+    }
+
+    public PropertyRepository getPropertyRepository() {
+        return propertyRepository;
+    }
+
+    public int loadSeedDataFromCsv(String resourcePath) {
+        try {
+            List<Property> loaded = CsvSeedLoader.loadPropertiesFromResource(resourcePath);
+            for (Property p : loaded) {
+                propertyRepository.save(p);
+                catalog.add(p);
+            }
+            return loaded.size();
+        } catch (Exception e) {
+            return 0;
         }
     }
 

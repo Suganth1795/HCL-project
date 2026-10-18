@@ -1,0 +1,13 @@
+id,ownerId,title,description,propertyType,city,locality,bhk,monthlyRent,depositAmount,status
+101,1,Marina Bay Sea View,Luxury 3BHK beachfront apartment,APARTMENT,Chennai,Besant Nagar,3,45000.0,90000.0,APPROVED
+102,2,Prestige Tech Park Studio,Modern compact studio near IT corridor,STUDIO,Bangalore,Whitefield,1,18000.0,36000.0,APPROVED
+103,1,Greenwood Gated Villa,Spacious 4BHK villa with private lawn,VILLA,Bangalore,Indiranagar,4,85000.0,170000.0,APPROVED
+104,3,Sea Breeze Beachfront Flat,Sunlit 2BHK flat facing Bay of Bengal,APARTMENT,Chennai,ECR,2,38000.0,76000.0,APPROVED
+105,2,Cyber Towers Executive Flat,Executive 2BHK near HITEC City,APARTMENT,Hyderabad,Gachibowli,2,28000.0,56000.0,APPROVED
+106,4,Hiranandani Powai Heights,Premium 3BHK flat in upscale township,APARTMENT,Mumbai,Powai,3,75000.0,150000.0,APPROVED
+107,4,DLF Phase 5 Sky Villa,Exclusive 4BHK duplex penthouse,PENTHOUSE,Gurgaon,DLF Phase 5,4,110000.0,220000.0,APPROVED
+108,5,Koregaon Park Green Retreat,Charming 2BHK surrounded by foliage,APARTMENT,Pune,Koregaon Park,2,32000.0,64000.0,APPROVED
+109,3,Jubilee Hills Panoramic Villa,Ultra-luxury 4BHK residence with pool,VILLA,Hyderabad,Jubilee Hills,4,125000.0,250000.0,APPROVED
+110,5,Bandra West Heritage Flat,Boutique 2BHK apartment near Bandstand,APARTMENT,Mumbai,Bandra West,2,65000.0,130000.0,APPROVED
+111,1,Sobha Silicon Oasis,Brand new 3BHK smart apartment,APARTMENT,Bangalore,Electronic City,3,42000.0,84000.0,PENDING_REVIEW
+112,2,Phoenix One Bangalore West,Luxury 3BHK high-rise apartment,APARTMENT,Bangalore,Rajajinagar,3,58000.0,116000.0,DRAFT
