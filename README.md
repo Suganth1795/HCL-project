@@ -149,6 +149,21 @@ Provides a menu-driven CLI interface with dedicated handlers for each Functional
   - `ListingServiceImpl` accepts `PropertyRepository` via constructor injection.
   - `ConsoleMenuApp` seeds initial catalog data directly from `/data/properties.csv` via `CsvSeedLoader` and reports repository statistics.
 
+#### J. JVM Memory Architecture, Memory Pitfalls Review & Stack/Heap Execution Trace
+- **Runtime Memory Structure (`A1-JVM-01`, `A1-JVM-02`)**:
+  - Thread-private Stack: Frames for method invocations, Local Variable Arrays (primitives stored by value, references stored by 64-bit pointers), operand evaluation stack.
+  - JVM-shared Heap: Young Generation (Eden space for initial `new` allocations, Survivor spaces S0/S1 for object tenuring), Old/Tenured Generation (long-lived services, in-memory repository hash maps), and String Constant Pool (interned literals).
+  - Metaspace: Native memory storing class metadata, bytecode tables, and method definitions.
+- **Five Critical Memory Pitfalls Analyzed & Remediated**:
+  1. *Unclosed I/O Resources*: Addressed via modern `try-with-resources` (`AutoCloseable`) in `CsvSeedLoader.java` preventing OS file descriptor exhaustion.
+  2. *Unbounded In-Memory Collections*: Addressed via encapsulation and explicit cleanup methods (`deleteById`, `deleteAll`) preventing heap bloat.
+  3. *String Concatenation in Loops*: Addressed via upfront `StringBuilder` allocation in `generateSortedCityReport()` mitigating excessive Eden garbage churn.
+  4. *Mutating Hash Keys*: Addressed via immutable ID-based `hashCode()` in `BaseEntity` and Java 21 `record`s for engagement entities.
+  5. *Static ClassLoader References*: Addressed via constructor dependency injection instead of static singleton collections.
+- **Detailed Stack & Heap Diagram for `ListingServiceImpl.createLease()`**:
+  - Traces 6 execution phases: frame allocation, target lookup, ownership validation, active duplicate verification, atomic ID generation, heap graph mutation (`HashMap.put` and String pool reference swap to `"RENTED"`), and frame popping.
+  - Complete technical documentation and visual ASCII diagrams recorded in [`docs/MEMORY-ANALYSIS.md`](docs/MEMORY-ANALYSIS.md).
+
 ---
 
 ### 5. Maven Build & CLI Execution Instructions
@@ -179,6 +194,7 @@ mvn exec:java
 | **Task 7** | Use List, Set, and Queue and implement FR1–FR3 in the console application | `src/.../ApprovalQueueService.java`<br>`src/.../ListingService.java`<br>`src/.../ListingServiceImpl.java`<br>`src/.../ConsoleMenuApp.java`<br>`src/test/.../ListingServiceCollectionsTest.java`<br>`README.md` | Executed `mvn clean test` (Java 21): 34/34 tests passed with 0 failures; validated List catalog & search results, Set deduplicated favourites & cities, Queue FIFO admin moderation, and interactive FR1-FR3 workflows. | [`72ad858`](https://github.com/Suganth1795/HCL-project/commit/72ad858) | **Pushed** | Task 8: Use Maps, a sorted report, and two Comparators; implement FR4–FR6 |
 | **Task 8** | Use Maps, a sorted report, and two Comparators; implement FR4–FR6 | `src/.../PropertyComparators.java`<br>`src/.../Enquiry.java`<br>`src/.../VisitRequest.java`<br>`src/.../ListingService.java`<br>`src/.../ListingServiceImpl.java`<br>`src/.../ConsoleMenuApp.java`<br>`src/test/.../PropertyComparatorsTest.java`<br>`src/test/.../EngagementAndLeaseServiceTest.java`<br>`src/test/.../ConsoleMenuAppTest.java`<br>`README.md` | Executed `mvn clean test` (Java 21): 46/46 tests passed with 0 failures; validated single and multi-field Comparators, city-grouped Map reports, FR4 user favourites Map, FR5 inquiries/visits Maps, and FR6 digital lease Map contract. | [`0c00a3d`](https://github.com/Suganth1795/HCL-project/commit/0c00a3d) | **Pushed** | Task 9: Create CrudRepository<T, ID> and reusable InMemoryRepository implementations, and load seed data from CSV |
 | **Task 9** | Create CrudRepository<T, ID> and reusable InMemoryRepository implementations, and load seed data from CSV | `src/.../CrudRepository.java`<br>`src/.../InMemoryGenericRepository.java`<br>`src/.../PropertyRepository.java`<br>`src/.../InMemoryPropertyRepository.java`<br>`src/.../UserRepository.java`<br>`src/.../InMemoryUserRepository.java`<br>`src/.../CsvSeedLoader.java`<br>`src/main/resources/data/properties.csv`<br>`src/.../ListingServiceImpl.java`<br>`src/.../ConsoleMenuApp.java`<br>`src/test/.../InMemoryGenericRepositoryTest.java`<br>`src/test/.../EntityRepositoriesTest.java`<br>`src/test/.../CsvSeedLoaderTest.java`<br>`README.md` | Executed `mvn clean test` (Java 21): 63/63 tests passed with 0 failures; validated generic type parameters & lambda functional hooks, thread-safe ConcurrentHashMap storage, domain repository queries, CSV resource parsing, and seed loading. | [`b33246f`](https://github.com/Suganth1795/HCL-project/commit/b33246f) | **Pushed** | Task 10: Review memory pitfalls and document stack/heap diagram for one business method |
+| **Task 10** | Review memory pitfalls and document stack/heap diagram for one business method | `docs/MEMORY-ANALYSIS.md`<br>`README.md` | Documented JVM runtime memory regions, reviewed 5 critical enterprise memory pitfalls with platform mitigations, produced comprehensive visual Stack & Heap execution trace for `ListingServiceImpl.createLease()`, and verified 63/63 JUnit tests. | *Pending Approval* | *Awaiting Approval* | All 10 Selected HCL Tasks Completed |
 
 ---
 
